@@ -7,14 +7,15 @@ st.set_page_config(page_title="JARVIS Assistant", page_icon="🤖", layout="cent
 st.title("🤖 JARVIS — Asystent Głosowy")
 st.write("Witaj Proszę Pana. Jestem gotowy do analizy i pomocy naukowej.")
 
-# POPRAWIONE: Prawidłowe pobieranie klucza z secrets
+# Prawidłowe pobieranie klucza z secrets
 HF_TOKEN = st.secrets.get("HF_TOKEN", "")
 
 if not HF_TOKEN:
     st.error("Błąd systemu: Brak klucza HF_TOKEN w ustawieniach serwera!")
     st.stop()
 
-client = InferenceClient(model="mistralai/Mistral-7B-Instruct-v0.3", token=HF_TOKEN)
+# Inicjalizacja oficjalnego, darmowego modelu konwersacyjnego Zephyr
+client = InferenceClient(model="HuggingFaceH4/zephyr-7b-beta", token=HF_TOKEN)
 
 JARVIS_PROMPT = """
 Nazywasz się JARVIS. Jesteś genialnym, ultraracjonalnym asystentem inżynieryjnym i naukowym. 
@@ -36,27 +37,25 @@ if audio_value:
     if st.button("Wyślij do JARVIS-a") or (command and not st.session_state.get('processed')):
         text_to_analyze = command if command else "Wyjaśnij mi, jak zbudować prosty silnik, Sir."
         
-        messages = [
-            {"role": "system", "content": JARVIS_PROMPT},
-            {"role": "user", "content": text_to_analyze}
-        ]
+        # Budujemy prosty, bezpieczny tekst dla modelu, łącząc instrukcję z Twoim pytaniem
+        full_prompt = f"{JARVIS_PROMPT}\n\nUżytkownik: {text_to_analyze}\nJARVIS:"
         
         with st.spinner("JARVIS analizuje dane..."):
             try:
-                response = ""
-                for message in client.chat_completion(messages, max_tokens=600, stream=True):
-                    token = message.choices.delta.content
-                    if token:
-                        response += token
+                # Używamy standardowej, niezawodnej metody generowania tekstu
+                response = client.text_generation(full_prompt, max_new_tokens=400)
+                
+                # Oczyszczamy odpowiedź, jeśli model dopisałby coś zbędnego
+                clean_response = response.split("Użytkownik:")[0].strip()
                 
                 # Wyświetlenie odpowiedzi JARVIS-a
                 st.subheader("Odpowiedź JARVIS-a:")
-                st.write(response)
+                st.write(clean_response)
                 
                 # WYGENEROWANIE AUDIO (JARVIS MÓWI PRZEZ PRZEGLĄDARKĘ!)
                 tts_html = f"""
                 <audio autoplay>
-                  <source src="https://google.com{response.replace(' ', '+')}" type="audio/mpeg">
+                  <source src="https://google.com{clean_response.replace(' ', '+')}" type="audio/mpeg">
                 </audio>
                 """
                 st.components.v1.html(tts_html, height=0)
