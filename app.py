@@ -14,8 +14,8 @@ if not HF_TOKEN:
     st.error("Błąd systemu: Brak klucza HF_TOKEN w ustawieniach serwera!")
     st.stop()
 
-# Inicjalizacja oficjalnego, darmowego modelu konwersacyjnego Zephyr
-client = InferenceClient(model="HuggingFaceH4/zephyr-7b-beta", token=HF_TOKEN)
+# Inicjalizacja stabilnego modelu od Microsoft
+client = InferenceClient(model="microsoft/Phi-3-mini-4k-instruct", token=HF_TOKEN)
 
 JARVIS_PROMPT = """
 Nazywasz się JARVIS. Jesteś genialnym, ultraracjonalnym asystentem inżynieryjnym i naukowym. 
@@ -37,16 +37,16 @@ if audio_value:
     if st.button("Wyślij do JARVIS-a") or (command and not st.session_state.get('processed')):
         text_to_analyze = command if command else "Wyjaśnij mi, jak zbudować prosty silnik, Sir."
         
-        # Budujemy prosty, bezpieczny tekst dla modelu, łącząc instrukcję z Twoim pytaniem
-        full_prompt = f"{JARVIS_PROMPT}\n\nUżytkownik: {text_to_analyze}\nJARVIS:"
+        # Budujemy czysty komunikat dla modelu Microsoftu
+        full_prompt = f"<s>[SRSYSTEM]\n{JARVIS_PROMPT}\n[USER]\n{text_to_analyze}\n[JARVIS]\n"
         
         with st.spinner("JARVIS analizuje dane..."):
             try:
                 # Używamy standardowej, niezawodnej metody generowania tekstu
                 response = client.text_generation(full_prompt, max_new_tokens=400)
                 
-                # Oczyszczamy odpowiedź, jeśli model dopisałby coś zbędnego
-                clean_response = response.split("Użytkownik:")[0].strip()
+                # Oczyszczamy tekst odpowiedzi
+                clean_response = response.split("[USER]")[0].strip()
                 
                 # Wyświetlenie odpowiedzi JARVIS-a
                 st.subheader("Odpowiedź JARVIS-a:")
@@ -63,4 +63,3 @@ if audio_value:
                 
             except Exception as e:
                 st.error(f"Błąd rdzenia AI: {e}")
-
