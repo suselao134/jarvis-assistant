@@ -15,7 +15,7 @@ if not HF_TOKEN:
     st.stop()
 
 # Inicjalizacja darmowego modelu od Microsoftu
-client = InferenceClient(model="meta-llama/Llama-3.2-3B-Instruct", token=HF_TOKEN)
+client = InferenceClient(model="microsoft/Phi-3-mini-4k-instruct", token=HF_TOKEN)
 
 JARVIS_PROMPT = """
 Nazywasz się JARVIS. Jesteś genialnym, ultraracjonalnym asystentem inżynieryjnym i naukowym. 
