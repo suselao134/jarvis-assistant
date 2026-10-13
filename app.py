@@ -14,8 +14,7 @@ if not HF_TOKEN:
     st.error("Błąd systemu: Brak klucza HF_TOKEN w ustawieniach serwera!")
     st.stop()
 
-# Inicjalizacja mózgu Llama 3
-client = InferenceClient(model="meta-llama/Meta-Llama-3-8B-Instruct", token=HF_TOKEN)
+client = InferenceClient(model="meta-llama/Meta-Llama-3.1-8B-Instruct", token=HF_TOKEN)
 
 JARVIS_PROMPT = """
 Nazywasz się JARVIS. Jesteś genialnym, ultraracjonalnym asystentem inżynieryjnym i naukowym. 
