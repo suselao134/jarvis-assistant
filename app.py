@@ -14,7 +14,7 @@ if not HF_TOKEN:
     st.error("Błąd systemu: Brak klucza HF_TOKEN w ustawieniach serwera!")
     st.stop()
 
-# Inicjalizacja stabilnego modelu od Microsoft
+# Inicjalizacja modelu od Microsoftu
 client = InferenceClient(model="microsoft/Phi-3-mini-4k-instruct", token=HF_TOKEN)
 
 JARVIS_PROMPT = """
@@ -37,25 +37,29 @@ if audio_value:
     if st.button("Wyślij do JARVIS-a") or (command and not st.session_state.get('processed')):
         text_to_analyze = command if command else "Wyjaśnij mi, jak zbudować prosty silnik, Sir."
         
-        # Budujemy czysty komunikat dla modelu Microsoftu
-        full_prompt = f"<s>[SRSYSTEM]\n{JARVIS_PROMPT}\n[USER]\n{text_to_analyze}\n[JARVIS]\n"
+        # WYMUSZONE PRZEZ SERWER: Oficjalna struktura czatu dla funkcji conversational
+        messages = [
+            {"role": "system", "content": JARVIS_PROMPT},
+            {"role": "user", "content": text_to_analyze}
+        ]
         
         with st.spinner("JARVIS analizuje dane..."):
             try:
-                # Używamy standardowej, niezawodnej metody generowania tekstu
-                response = client.text_generation(full_prompt, max_new_tokens=400)
-                
-                # Oczyszczamy tekst odpowiedzi
-                clean_response = response.split("[USER]")[0].strip()
+                # Używamy oficjalnej metody chat_completion, zbierając odpowiedź kawałek po kawałku
+                response = ""
+                for message in client.chat_completion(messages, max_tokens=400, stream=True):
+                    token = message.choices.delta.content
+                    if token:
+                        response += token
                 
                 # Wyświetlenie odpowiedzi JARVIS-a
                 st.subheader("Odpowiedź JARVIS-a:")
-                st.write(clean_response)
+                st.write(response)
                 
-                # WYGENEROWANIE AUDIO (JARVIS MÓWI PRZEZ PRZEGLĄDARKĘ!)
+                # POPRAWIONE AUDIO: Poprawny link do syntezatora mowy Google
                 tts_html = f"""
                 <audio autoplay>
-                  <source src="https://google.com{clean_response.replace(' ', '+')}" type="audio/mpeg">
+                  <source src="https://google.com{response.replace(' ', '+')}" type="audio/mpeg">
                 </audio>
                 """
                 st.components.v1.html(tts_html, height=0)
