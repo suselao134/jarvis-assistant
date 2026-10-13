@@ -7,8 +7,8 @@ st.set_page_config(page_title="JARVIS Assistant", page_icon="🤖", layout="cent
 st.title("🤖 JARVIS — Asystent Głosowy")
 st.write("Witaj Proszę Pana. Jestem gotowy do analizy i pomocy naukowej.")
 
-# Pobieranie klucza bezpieczeństwa z ustawień serwera
-HF_TOKEN = st.secrets.get(HF_TOKEN = "TOKEN")
+# POPRAWIONE: Prawidłowe pobieranie klucza z secrets
+HF_TOKEN = st.secrets.get("HF_TOKEN", "")
 
 if not HF_TOKEN:
     st.error("Błąd systemu: Brak klucza HF_TOKEN w ustawieniach serwera!")
@@ -31,8 +31,7 @@ audio_value = st.audio_input("Kliknij mikrofon i powiedz polecenie:")
 if audio_value:
     st.info("Systemy audio przetwarzają dźwięk...")
     
-    # Ponieważ darmowe serwery mogą mieć problem z konwersją audio w locie na starszych kontach,
-    # JARVIS udostępnia też awaryjne pole tekstowe na wypadek braku transkrypcji mikrofonu.
+    # Awaryjne pole tekstowe na wypadek problemów z transkrypcją
     command = st.text_input("Popraw tekst lub wpisz polecenie ręcznie, jeśli mikrofon nie przepisał mowy:")
     
     if st.button("Wyślij do JARVIS-a") or (command and not st.session_state.get('processed')):
@@ -56,7 +55,6 @@ if audio_value:
                 st.write(response)
                 
                 # WYGENEROWANIE AUDIO (JARVIS MÓWI PRZEZ PRZEGLĄDARKĘ!)
-                # Serwer używa wbudowanej syntezy mowy HTML5 dla pełnej płynności dźwięku
                 tts_html = f"""
                 <audio autoplay>
                   <source src="https://google.com{response.replace(' ', '+')}" type="audio/mpeg">
@@ -67,3 +65,4 @@ if audio_value:
                 
             except Exception as e:
                 st.error(f"Błąd rdzenia AI: {e}")
+
